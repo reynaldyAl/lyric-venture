@@ -99,6 +99,15 @@ npm install --legacy-peer-deps
 ```bash
 npm install @supabase/supabase-js @supabase/ssr
 npm install clsx tailwind-merge react-hook-form @hookform/resolvers zod date-fns
+npx shadcn@latest init
+```
+*** for shadcn ***
+```bash
+✔ Which style would you like to use? › New York        ← pilih ini
+✔ Which color would you like to use as base color? › Zinc  ← pilih ini (neutral, cocok untuk musik)
+✔ Would you like to use CSS variables for colors? › Yes
+
+npx shadcn@latest add button input label textarea select card badge separator avatar sheet dropdown-menu breadcrumb tabs toast dialog alert skeleton form switch checkbox
 ```
 
 ---
