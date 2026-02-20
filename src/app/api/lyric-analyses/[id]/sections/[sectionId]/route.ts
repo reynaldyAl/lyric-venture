@@ -1,7 +1,23 @@
 import { createClient } from '@/lib/supabase/server'
 import { okResponse, errorResponse, notFound, requireAuth, requireAdmin } from '@/lib/api-helpers'
 
-// PUT /api/lyric-analyses/[id]/sections/[sectionId]
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ sectionId: string }> }
+) {
+  const supabase = await createClient()
+  const { sectionId } = await params
+
+  const { data, error } = await supabase
+    .from('lyric_sections')
+    .select(`*, lyric_highlights ( * )`)
+    .eq('id', sectionId)
+    .single()
+
+  if (error || !data) return notFound('Section')
+  return okResponse(data)
+}
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string; sectionId: string }> }
@@ -16,7 +32,9 @@ export async function PUT(
   delete body.analysis_id
   delete body.created_at
 
-  const { data, error } = await supabase
+  const db = supabase as any  // ✅ fix v2.97
+
+  const { data, error } = await db
     .from('lyric_sections')
     .update(body)
     .eq('id', sectionId)
@@ -28,18 +46,16 @@ export async function PUT(
   return okResponse(data)
 }
 
-// DELETE /api/lyric-analyses/[id]/sections/[sectionId]
 export async function DELETE(
   _req: Request,
-  { params }: { params: Promise<{ id: string; sectionId: string }> }
+  { params }: { params: Promise<{ sectionId: string }> }
 ) {
   const supabase = await createClient()
   const { sectionId } = await params
   const { error: authError } = await requireAdmin(supabase)
   if (authError) return authError
 
-  const { error } = await supabase
-    .from('lyric_sections').delete().eq('id', sectionId)
+  const { error } = await supabase.from('lyric_sections').delete().eq('id', sectionId)
   if (error) return errorResponse(error.message)
   return okResponse({ success: true, message: 'Section deleted' })
 }

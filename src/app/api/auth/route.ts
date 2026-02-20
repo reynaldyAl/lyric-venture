@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { okResponse, errorResponse, notFound, requireAuth } from '@/lib/api-helpers'
 
-// GET /api/auth/profile — profil user yang sedang login
 export async function GET() {
   const supabase = await createClient()
   const { user, error: authError } = await requireAuth(supabase)
@@ -17,20 +16,19 @@ export async function GET() {
   return okResponse(data)
 }
 
-// PUT /api/auth/profile — update profil sendiri
 export async function PUT(request: Request) {
   const supabase = await createClient()
   const { user, error: authError } = await requireAuth(supabase)
   if (authError) return authError
 
   const body = await request.json()
-
-  // Field yang tidak boleh diupdate sendiri
   delete body.id
-  delete body.role        // role hanya bisa diubah oleh admin
+  delete body.role
   delete body.created_at
 
-  const { data, error } = await supabase
+  const db = supabase as any  // ✅ fix v2.97
+
+  const { data, error } = await db
     .from('profiles')
     .update(body)
     .eq('id', user!.id)

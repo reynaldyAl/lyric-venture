@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
   const { data, error } = await supabase
     .from('tags')
-    .insert({ name: name.trim(), slug: slug.trim(), color })
+    .insert({ name: name.trim(), slug: slug.trim(), color } as any)
     .select()
     .single()
 

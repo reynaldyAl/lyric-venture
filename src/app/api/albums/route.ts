@@ -40,29 +40,26 @@ export async function POST(request: Request) {
     return errorResponse('artist_id, title, and slug are required', 400)
   }
 
-  // Pastikan artist exists
   const { data: artist } = await supabase
-    .from('artists')
-    .select('id')
-    .eq('id', artist_id)
-    .single()
-
+    .from('artists').select('id').eq('id', artist_id).single()
   if (!artist) return errorResponse('Artist not found', 404)
 
-  const { data, error } = await supabase
+  const db = supabase as any  // ✅ fix v2.97
+
+  const { data, error } = await db
     .from('albums')
     .insert({
       artist_id,
-      title:       title.trim(),
-      slug:        slug.trim(),
-      release_date: release_date ?? null,
-      cover_image:  cover_image  ?? null,
-      description:  description  ?? null,
-      album_type:   album_type   ?? 'album',
-      total_tracks: total_tracks ?? null,
-      meta_title:   meta_title   ?? null,
+      title:            title.trim(),
+      slug:             slug.trim(),
+      release_date:     release_date     ?? null,
+      cover_image:      cover_image      ?? null,
+      description:      description      ?? null,
+      album_type:       album_type       ?? 'album',
+      total_tracks:     total_tracks     ?? null,
+      meta_title:       meta_title       ?? null,
       meta_description: meta_description ?? null,
-      created_by: user!.id,
+      created_by:       user!.id,
     })
     .select()
     .single()

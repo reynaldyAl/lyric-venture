@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { okResponse, errorResponse, notFound, requireAuth } from '@/lib/api-helpers'
-import type { InsertTables } from '@/lib/types'
 
 export async function GET(
   _req: Request,
@@ -45,16 +44,19 @@ export async function POST(
     return errorResponse('section_type, section_label, and content are required', 400)
   }
 
-  const insert: InsertTables<'lyric_sections'> = {
-    analysis_id:   id,
-    section_type:  section_type.trim(),
-    section_label: section_label.trim(),
-    content:       content.trim(),
-    order_index:   order_index ?? 0,
-  }
+  const db = supabase as any  // ✅ fix v2.97
 
-  const { data, error } = await supabase
-    .from('lyric_sections').insert(insert).select().single()
+  const { data, error } = await db
+    .from('lyric_sections')
+    .insert({
+      analysis_id:   id,
+      section_type:  section_type.trim(),
+      section_label: section_label.trim(),
+      content:       content.trim(),
+      order_index:   order_index ?? 0,
+    })
+    .select()
+    .single()
 
   if (error) return errorResponse(error.message)
   return okResponse(data, 201)

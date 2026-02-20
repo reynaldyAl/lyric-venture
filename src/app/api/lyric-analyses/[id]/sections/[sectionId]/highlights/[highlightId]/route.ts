@@ -16,7 +16,9 @@ export async function PUT(
   delete body.section_id
   delete body.created_at
 
-  const { data, error } = await supabase
+  const db = supabase as any  // ✅ fix v2.97
+
+  const { data, error } = await db
     .from('lyric_highlights')
     .update(body)
     .eq('id', highlightId)

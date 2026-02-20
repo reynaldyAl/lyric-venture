@@ -3,7 +3,6 @@ import {
   okResponse, errorResponse, notFound,
   requireAuth, requireAdmin,
 } from '@/lib/api-helpers'
-import type { UpdateTables } from '@/lib/types'
 
 export async function GET(
   _req: Request,
@@ -51,10 +50,14 @@ export async function PUT(
     rest.published_at = new Date().toISOString()
   }
 
-  const update: UpdateTables<'lyric_analyses'> = rest
+  const db = supabase as any  // ✅ fix v2.97
 
-  const { data, error } = await supabase
-    .from('lyric_analyses').update(update).eq('id', id).select().single()
+  const { data, error } = await db
+    .from('lyric_analyses')
+    .update(rest)
+    .eq('id', id)
+    .select()
+    .single()
 
   if (error) return errorResponse(error.message)
   if (!data)  return notFound('Lyric analysis')

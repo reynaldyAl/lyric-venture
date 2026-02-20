@@ -60,7 +60,7 @@ export async function POST(request: Request) {
   }
 
   const { data, error } = await supabase
-    .from('lyric_analyses').insert(insert).select().single()
+    .from('lyric_analyses').insert(insert as any).select().single()
 
   if (error) return errorResponse(error.message)
   return okResponse(data, 201)

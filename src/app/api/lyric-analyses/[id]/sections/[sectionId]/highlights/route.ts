@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { okResponse, errorResponse, notFound, requireAuth } from '@/lib/api-helpers'
-import type { InsertTables } from '@/lib/types'
 
 export async function GET(
   _req: Request,
@@ -42,19 +41,22 @@ export async function POST(
     return errorResponse('start_index and end_index are required', 400)
   }
 
-  const insert: InsertTables<'lyric_highlights'> = {
-    section_id:     sectionId,
-    phrase:         phrase.trim(),
-    meaning:        meaning.trim(),
-    start_index:    Number(start_index),
-    end_index:      Number(end_index),
-    color_tag:      color_tag      ?? null,
-    highlight_type: highlight_type ?? null,
-    order_index:    order_index    ?? 0,
-  }
+  const db = supabase as any  // ✅ fix v2.97
 
-  const { data, error } = await supabase
-    .from('lyric_highlights').insert(insert).select().single()
+  const { data, error } = await db
+    .from('lyric_highlights')
+    .insert({
+      section_id:     sectionId,
+      phrase:         phrase.trim(),
+      meaning:        meaning.trim(),
+      start_index:    Number(start_index),
+      end_index:      Number(end_index),
+      color_tag:      color_tag      ?? null,
+      highlight_type: highlight_type ?? null,
+      order_index:    order_index    ?? 0,
+    })
+    .select()
+    .single()
 
   if (error) return errorResponse(error.message)
   return okResponse(data, 201)

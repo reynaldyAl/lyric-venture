@@ -42,7 +42,9 @@ export async function PUT(
   delete body.created_at
   delete body.created_by
 
-  const { data, error } = await supabase
+  const db = supabase as any  // ✅ fix v2.97
+
+  const { data, error } = await db
     .from('albums')
     .update(body)
     .eq('slug', slug)

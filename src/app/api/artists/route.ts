@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { okResponse, errorResponse, requireAuth, getPagination, paginatedResponse } from '@/lib/api-helpers'
 
-// GET /api/artists?search=&page=&limit=
 export async function GET(request: Request) {
   const supabase = await createClient()
   const { limit, page, offset, searchParams } = getPagination(request.url)
@@ -20,7 +19,6 @@ export async function GET(request: Request) {
   return paginatedResponse(data, count, page, limit)
 }
 
-// POST /api/artists
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { user, error: authError } = await requireAuth(supabase)
@@ -37,21 +35,24 @@ export async function POST(request: Request) {
     return errorResponse('name and slug are required', 400)
   }
 
-  const { data, error } = await supabase
+  const db = supabase as any  // ✅ fix v2.97
+
+  const { data, error } = await db
     .from('artists')
     .insert({
-      name: name.trim(),
-      slug: slug.trim(),
-      bio, origin,
-      formed_year:    formed_year    ?? null,
-      disbanded_year: disbanded_year ?? null,
-      genre:          genre          ?? [],
-      cover_image:    cover_image    ?? null,
-      banner_image:   banner_image   ?? null,
-      social_links:   social_links   ?? {},
-      meta_title:     meta_title     ?? null,
+      name:             name.trim(),
+      slug:             slug.trim(),
+      bio,
+      origin,
+      formed_year:      formed_year      ?? null,
+      disbanded_year:   disbanded_year   ?? null,
+      genre:            genre            ?? [],
+      cover_image:      cover_image      ?? null,
+      banner_image:     banner_image     ?? null,
+      social_links:     social_links     ?? {},
+      meta_title:       meta_title       ?? null,
       meta_description: meta_description ?? null,
-      created_by: user!.id,
+      created_by:       user!.id,
     })
     .select()
     .single()

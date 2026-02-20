@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { okResponse, errorResponse, notFound, requireAuth, requireAdmin } from '@/lib/api-helpers'
 
-// GET /api/artists/[slug] — detail + albums + songs
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ slug: string }> }
@@ -13,10 +12,7 @@ export async function GET(
     .from('artists')
     .select(`
       *,
-      albums (
-        id, title, slug, release_date,
-        cover_image, album_type, total_tracks
-      ),
+      albums ( id, title, slug, release_date, cover_image, album_type, total_tracks ),
       songs (
         id, title, slug, cover_image, release_date,
         duration_sec, is_published, view_count, spotify_track_id,
@@ -30,7 +26,6 @@ export async function GET(
   return okResponse(data)
 }
 
-// PUT /api/artists/[slug]
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
@@ -41,13 +36,13 @@ export async function PUT(
   if (authError) return authError
 
   const body = await request.json()
-
-  // Jangan izinkan update slug langsung (bisa breaking URL)
   delete body.id
   delete body.created_at
   delete body.created_by
 
-  const { data, error } = await supabase
+  const db = supabase as any  // ✅ fix v2.97
+
+  const { data, error } = await db
     .from('artists')
     .update(body)
     .eq('slug', slug)
@@ -59,7 +54,6 @@ export async function PUT(
   return okResponse(data)
 }
 
-// DELETE /api/artists/[slug] — admin only
 export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ slug: string }> }
