@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { okResponse, errorResponse, notFound, requireAuth } from '@/lib/api-helpers'
+import type { InsertTables } from '@/lib/types'
 
-// GET /api/lyric-analyses/[id]/sections/[sectionId]/highlights
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ sectionId: string }> }
@@ -19,7 +19,6 @@ export async function GET(
   return okResponse(data ?? [])
 }
 
-// POST highlights
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ sectionId: string }> }
@@ -29,35 +28,33 @@ export async function POST(
   const { error: authError } = await requireAuth(supabase)
   if (authError) return authError
 
-  // Pastikan section exists
   const { data: section } = await supabase
     .from('lyric_sections').select('id').eq('id', sectionId).single()
   if (!section) return notFound('Section')
 
   const body = await request.json()
-  const {
-    phrase, meaning, start_index, end_index,
-    color_tag, highlight_type, order_index,
-  } = body
+  const { phrase, meaning, start_index, end_index, color_tag, highlight_type, order_index } = body
 
   if (!phrase?.trim() || !meaning?.trim()) {
     return errorResponse('phrase and meaning are required', 400)
   }
+  if (start_index === undefined || end_index === undefined) {
+    return errorResponse('start_index and end_index are required', 400)
+  }
+
+  const insert: InsertTables<'lyric_highlights'> = {
+    section_id:     sectionId,
+    phrase:         phrase.trim(),
+    meaning:        meaning.trim(),
+    start_index:    Number(start_index),
+    end_index:      Number(end_index),
+    color_tag:      color_tag      ?? null,
+    highlight_type: highlight_type ?? null,
+    order_index:    order_index    ?? 0,
+  }
 
   const { data, error } = await supabase
-    .from('lyric_highlights')
-    .insert({
-      section_id:     sectionId,
-      phrase:         phrase.trim(),
-      meaning:        meaning.trim(),
-      start_index:    start_index    ?? null,
-      end_index:      end_index      ?? null,
-      color_tag:      color_tag      ?? 'yellow',
-      highlight_type: highlight_type ?? 'general',
-      order_index:    order_index    ?? 0,
-    })
-    .select()
-    .single()
+    .from('lyric_highlights').insert(insert).select().single()
 
   if (error) return errorResponse(error.message)
   return okResponse(data, 201)

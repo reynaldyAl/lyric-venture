@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { okResponse, errorResponse, notFound, requireAuth } from '@/lib/api-helpers'
+import type { InsertTables } from '@/lib/types'
 
-// GET /api/lyric-analyses/[id]/sections
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -25,7 +25,6 @@ export async function GET(
   return okResponse(data ?? [])
 }
 
-// POST /api/lyric-analyses/[id]/sections
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -35,7 +34,6 @@ export async function POST(
   const { error: authError } = await requireAuth(supabase)
   if (authError) return authError
 
-  // Pastikan analysis exists
   const { data: analysis } = await supabase
     .from('lyric_analyses').select('id').eq('id', id).single()
   if (!analysis) return notFound('Lyric analysis')
@@ -43,21 +41,20 @@ export async function POST(
   const body = await request.json()
   const { section_type, section_label, content, order_index } = body
 
-  if (!section_type || !section_label?.trim() || !content?.trim()) {
+  if (!section_type?.trim() || !section_label?.trim() || !content?.trim()) {
     return errorResponse('section_type, section_label, and content are required', 400)
   }
 
+  const insert: InsertTables<'lyric_sections'> = {
+    analysis_id:   id,
+    section_type:  section_type.trim(),
+    section_label: section_label.trim(),
+    content:       content.trim(),
+    order_index:   order_index ?? 0,
+  }
+
   const { data, error } = await supabase
-    .from('lyric_sections')
-    .insert({
-      analysis_id:   id,
-      section_type,
-      section_label: section_label.trim(),
-      content:       content.trim(),
-      order_index:   order_index ?? 0,
-    })
-    .select()
-    .single()
+    .from('lyric_sections').insert(insert).select().single()
 
   if (error) return errorResponse(error.message)
   return okResponse(data, 201)

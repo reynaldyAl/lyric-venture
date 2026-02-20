@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { okResponse, errorResponse, notFound, requireAuth, requireAdmin } from '@/lib/api-helpers'
+import type { UpdateTables } from '@/lib/types'
 
 // GET /api/songs/[slug] — detail lengkap dengan relasi
 export async function GET(
@@ -47,26 +48,25 @@ export async function PUT(
   if (authError) return authError
 
   const body = await request.json()
-  const { tag_ids, ...songData } = body
-
-  delete songData.id
-  delete songData.created_at
-  delete songData.created_by
+  const { tag_ids, id, created_at, created_by, artist_id, ...rest } = body
 
   // Handle published_at
-  if (songData.is_published && !songData.published_at) {
-    songData.published_at = new Date().toISOString()
+  if (rest.is_published && !rest.published_at) {
+    rest.published_at = new Date().toISOString()
   }
+
+  // ✅ Cast eksplisit ke UpdateTables — fix error 'any' not assignable to 'never'
+  const update: UpdateTables<'songs'> = rest
 
   const { data, error } = await supabase
     .from('songs')
-    .update(songData)
+    .update(update)
     .eq('slug', slug)
     .select()
     .single()
 
   if (error) return errorResponse(error.message)
-  if (!data)  return notFound('Song')
+  if (!data) return notFound('Song')
 
   // Update tags jika dikirim
   if (tag_ids !== undefined) {

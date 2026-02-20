@@ -9,7 +9,7 @@ export async function POST(
   const supabase = await createClient()
   const { slug } = await params
 
-  const { error } = await supabase.rpc('increment_song_view', { song_slug: slug })
+  const { error } = await supabase.rpc('increment_song_view', { song_slug: slug } as any)
 
   if (error) return errorResponse(error.message)
   return okResponse({ success: true, message: 'View counted' })

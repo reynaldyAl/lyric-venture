@@ -1,7 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { okResponse, errorResponse, notFound, requireAuth, requireAdmin } from '@/lib/api-helpers'
+import {
+  okResponse, errorResponse, notFound,
+  requireAuth, requireAdmin,
+} from '@/lib/api-helpers'
+import type { UpdateTables } from '@/lib/types'
 
-// GET /api/lyric-analyses/[id] — full analisis dengan sections + highlights
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -14,7 +17,7 @@ export async function GET(
     .select(`
       *,
       songs (
-        id, title, slug, cover_image, spotify_track_id, duration_sec,
+        id, title, slug, spotify_track_id, duration_sec, cover_image,
         artists ( id, name, slug, cover_image )
       ),
       lyric_sections (
@@ -32,7 +35,6 @@ export async function GET(
   return okResponse(data)
 }
 
-// PUT /api/lyric-analyses/[id]
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -43,28 +45,22 @@ export async function PUT(
   if (authError) return authError
 
   const body = await request.json()
-  delete body.id
-  delete body.song_id
-  delete body.created_at
-  delete body.author_id
+  const { id: _id, song_id, created_at, author_id, ...rest } = body
 
-  if (body.is_published && !body.published_at) {
-    body.published_at = new Date().toISOString()
+  if (rest.is_published && !rest.published_at) {
+    rest.published_at = new Date().toISOString()
   }
 
+  const update: UpdateTables<'lyric_analyses'> = rest
+
   const { data, error } = await supabase
-    .from('lyric_analyses')
-    .update(body)
-    .eq('id', id)
-    .select()
-    .single()
+    .from('lyric_analyses').update(update).eq('id', id).select().single()
 
   if (error) return errorResponse(error.message)
   if (!data)  return notFound('Lyric analysis')
   return okResponse(data)
 }
 
-// DELETE /api/lyric-analyses/[id] — admin only
 export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
