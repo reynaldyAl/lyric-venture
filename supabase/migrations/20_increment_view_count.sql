@@ -1,0 +1,11 @@
+-- CREATE OR REPLACE FUNCTION increment_song_view(song_id UUID)
+-- RETURNS void
+-- LANGUAGE plpgsql
+-- SECURITY DEFINER
+-- AS $$
+-- BEGIN
+--   UPDATE songs
+--   SET view_count = COALESCE(view_count, 0) + 1
+--   WHERE id = song_id;
+-- END;
+-- $$;

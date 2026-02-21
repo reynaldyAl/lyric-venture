@@ -53,9 +53,9 @@ type Highlight  = Tables<"lyric_highlights">;
 type Section    = Tables<"lyric_sections"> & { lyric_highlights: Highlight[] };
 type Analysis   = Tables<"lyric_analyses"> & { lyric_sections: Section[] };
 type SongDetail = Tables<"songs"> & {
-  artists:       (Tables<"artists">) | null;
-  albums:        (Tables<"albums">)  | null;
-  song_tags:     { tags: Pick<Tables<"tags">, "id" | "name" | "slug" | "color"> | null }[];
+  artists:        Tables<"artists"> | null;
+  albums:         Tables<"albums">  | null;
+  song_tags:      { tags: Pick<Tables<"tags">, "id" | "name" | "slug" | "color"> | null }[];
   lyric_analyses: Analysis[];
 };
 
@@ -97,6 +97,12 @@ async function getRelatedSongs(artistId: string, currentSlug: string) {
   return (data ?? []) as any[];
 }
 
+// ✅ Fix — tambahkan cast as any
+async function incrementViewCount(songId: string) {
+  const supabase = await createClient();
+  (supabase.rpc as any)("increment_song_view", { song_id: songId }).then(() => {});
+}
+
 function fmt(sec: number | null) {
   if (!sec) return null;
   return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
@@ -111,6 +117,9 @@ export default async function SongDetailPage({
   const { slug } = await params;
   const song     = await getSong(slug);
   if (!song) notFound();
+
+  // ✅ TAMBAHAN — increment view, tidak block render
+  incrementViewCount(song.id);
 
   const artist        = song.artists as any;
   const album         = song.albums  as any;
@@ -246,7 +255,6 @@ export default async function SongDetailPage({
         {analysis ? (
           <LyricAnalysis analysis={analysis} />
         ) : (
-          /* No analysis yet */
           <div className="py-16 text-center border border-dashed border-[#D5D2CB]">
             <p className="text-3xl text-[#C5C2BC] mb-3">✦</p>
             <p className="font-serif text-lg text-[#5A5651]">Analysis coming soon.</p>
@@ -276,7 +284,7 @@ export default async function SongDetailPage({
                   <p className="text-xs text-[#8A8680]">{artist.origin}</p>
                 )}
               </div>
-              <span className="text-xs text-[#3B5BDB] opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="text-xs text-[#3B5BDB] opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                 View profile →
               </span>
             </Link>
