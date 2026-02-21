@@ -13,6 +13,7 @@ import {
   SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import ImageUpload from "@/components/admin/ImageUpload";  // ✅ tambah import
 import type { Tables } from "@/lib/types";
 
 type AlbumFull    = Tables<"albums">;
@@ -103,30 +104,23 @@ export default function AlbumForm({ mode, album, artists }: AlbumFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
 
-      {/* Basic Info */}
+      {/* ── Basic Info — tidak berubah ── */}
       <Card className="bg-zinc-900 border-zinc-800">
         <CardContent className="p-5 space-y-4">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">Basic Info</p>
 
-          {/* Artist select */}
           <div className="space-y-1.5">
             <Label className="text-xs text-zinc-400">
               Artist <span className="text-red-400">*</span>
             </Label>
-            <Select
-              value={form.artist_id}
-              onValueChange={(v) => set("artist_id", v)}
-            >
+            <Select value={form.artist_id} onValueChange={(v) => set("artist_id", v)}>
               <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100 focus:border-indigo-500 h-9 text-sm">
                 <SelectValue placeholder="Select an artist..." />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-zinc-700 text-zinc-100">
                 {artists.map((a) => (
-                  <SelectItem
-                    key={a.id}
-                    value={a.id}
-                    className="hover:bg-zinc-800 focus:bg-zinc-800 text-zinc-200 text-sm"
-                  >
+                  <SelectItem key={a.id} value={a.id}
+                    className="hover:bg-zinc-800 focus:bg-zinc-800 text-zinc-200 text-sm">
                     {a.name}
                   </SelectItem>
                 ))}
@@ -134,12 +128,9 @@ export default function AlbumForm({ mode, album, artists }: AlbumFormProps) {
             </Select>
           </div>
 
-          {/* Title + Slug */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs text-zinc-400">
-                Title <span className="text-red-400">*</span>
-              </Label>
+              <Label className="text-xs text-zinc-400">Title <span className="text-red-400">*</span></Label>
               <Input
                 value={form.title}
                 onChange={(e) => handleTitleChange(e.target.value)}
@@ -149,9 +140,7 @@ export default function AlbumForm({ mode, album, artists }: AlbumFormProps) {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-zinc-400">
-                Slug <span className="text-red-400">*</span>
-              </Label>
+              <Label className="text-xs text-zinc-400">Slug <span className="text-red-400">*</span></Label>
               <Input
                 value={form.slug}
                 onChange={(e) => set("slug", e.target.value)}
@@ -162,7 +151,6 @@ export default function AlbumForm({ mode, album, artists }: AlbumFormProps) {
             </div>
           </div>
 
-          {/* Description */}
           <div className="space-y-1.5">
             <Label className="text-xs text-zinc-400">Description</Label>
             <Textarea
@@ -174,7 +162,6 @@ export default function AlbumForm({ mode, album, artists }: AlbumFormProps) {
             />
           </div>
 
-          {/* Type + Date + Tracks */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs text-zinc-400">Type</Label>
@@ -218,52 +205,30 @@ export default function AlbumForm({ mode, album, artists }: AlbumFormProps) {
         </CardContent>
       </Card>
 
-      {/* Cover Image */}
+      {/* ── Cover Image — DIGANTI dengan ImageUpload ── */}
       <Card className="bg-zinc-900 border-zinc-800">
-        <CardContent className="p-5 space-y-3">
+        <CardContent className="p-5 space-y-4">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">Cover Image</p>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-zinc-400">Image URL</Label>
-            <Input
-              value={form.cover_image}
-              onChange={(e) => set("cover_image", e.target.value)}
-              placeholder="https://..."
-              className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500 h-9 text-sm font-mono"
-            />
-          </div>
-          {form.cover_image && (
-            <div className="flex items-center gap-3">
-              <img
-                src={form.cover_image}
-                alt="Cover preview"
-                className="w-16 h-16 object-cover border border-zinc-700 rounded"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-              />
-              <p className="text-xs text-zinc-500">Preview</p>
-            </div>
-          )}
+          <ImageUpload
+            value={form.cover_image}
+            onChange={(url) => set("cover_image", url)}
+            bucket="albums"
+            label="Cover Image"
+            aspectRatio="square"
+          />
         </CardContent>
       </Card>
 
       <Separator className="bg-zinc-800" />
 
-      {/* Actions */}
+      {/* ── Actions — tidak berubah ── */}
       <div className="flex items-center gap-3 justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => router.back()}
-          className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 h-9"
-        >
+        <Button type="button" variant="outline" size="sm" onClick={() => router.back()}
+          className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 h-9">
           Cancel
         </Button>
-        <Button
-          type="submit"
-          size="sm"
-          disabled={isPending}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white h-9 px-6 min-w-[110px]"
-        >
+        <Button type="submit" size="sm" disabled={isPending}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white h-9 px-6 min-w-[110px]">
           {isPending
             ? (mode === "create" ? "Creating..." : "Saving...")
             : (mode === "create" ? "Create Album" : "Save Changes")}

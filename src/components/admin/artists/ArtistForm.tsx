@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 type Artist = {
   id: string;
@@ -103,6 +104,8 @@ export default function ArtistForm({ mode, artist }: ArtistFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+
+      {/* ── Basic Info — tidak berubah ── */}
       <Card className="bg-zinc-900 border-zinc-800">
         <CardContent className="p-5 space-y-4">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">Basic Info</p>
@@ -189,35 +192,30 @@ export default function ArtistForm({ mode, artist }: ArtistFormProps) {
         </CardContent>
       </Card>
 
+      {/* ── Images — DIGANTI dengan ImageUpload ── */}
       <Card className="bg-zinc-900 border-zinc-800">
-        <CardContent className="p-5 space-y-4">
+        <CardContent className="p-5 space-y-6">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">Images</p>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs text-zinc-400">Cover Image URL</Label>
-            <Input
-              value={form.cover_image}
-              onChange={(e) => handleChange("cover_image", e.target.value)}
-              placeholder="https://..."
-              className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500 h-9 text-sm font-mono"
-            />
-            {form.cover_image && (
-              <img src={form.cover_image} alt="preview" className="w-16 h-16 rounded-full object-cover border border-zinc-700 mt-2" />
-            )}
-          </div>
+          <ImageUpload
+            value={form.cover_image}
+            onChange={(url) => handleChange("cover_image", url)}
+            bucket="artists"
+            label="Cover Image"
+            aspectRatio="square"
+          />
 
-          <div className="space-y-1.5">
-            <Label className="text-xs text-zinc-400">Banner Image URL</Label>
-            <Input
-              value={form.banner_image}
-              onChange={(e) => handleChange("banner_image", e.target.value)}
-              placeholder="https://..."
-              className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500 h-9 text-sm font-mono"
-            />
-          </div>
+          <ImageUpload
+            value={form.banner_image}
+            onChange={(url) => handleChange("banner_image", url)}
+            bucket="artists"
+            label="Banner Image"
+            aspectRatio="wide"
+          />
         </CardContent>
       </Card>
 
+      {/* ── Active toggle — tidak berubah ── */}
       <Card className="bg-zinc-900 border-zinc-800">
         <CardContent className="p-5">
           <div className="flex items-center justify-between">

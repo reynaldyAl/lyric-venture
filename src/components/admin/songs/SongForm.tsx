@@ -13,6 +13,7 @@ import {
   SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import ImageUpload from "@/components/admin/ImageUpload"; // ✅ tambah import
 import type { Tables } from "@/lib/types";
 
 // ── Types ──────────────────────────────────────────────────
@@ -29,7 +30,6 @@ interface SongFormProps {
   tags:    TagOption[];
 }
 
-// ✅ Sentinel value — Radix tidak boleh value=""
 const NO_ALBUM = "__none__";
 
 const LANGUAGES = [
@@ -56,7 +56,6 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
-  // ✅ album_id pakai NO_ALBUM jika null/kosong
   const [form, setForm] = useState({
     artist_id:        song?.artist_id          ?? "",
     album_id:         song?.album_id           ?? NO_ALBUM,
@@ -75,7 +74,6 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
     song?.current_tag_ids ?? []
   );
 
-  // Albums filtered by selected artist
   const filteredAlbums = form.artist_id
     ? albums.filter((a) => a.artist_id === form.artist_id)
     : albums;
@@ -93,7 +91,6 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
   }
 
   function handleArtistChange(artistId: string) {
-    // Reset album saat ganti artist
     setForm((f) => ({ ...f, artist_id: artistId, album_id: NO_ALBUM }));
   }
 
@@ -113,7 +110,6 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
     }
 
     startTransition(async () => {
-      // ✅ Konversi NO_ALBUM sentinel → null sebelum kirim ke API
       const resolvedAlbumId = form.album_id === NO_ALBUM ? null : form.album_id;
 
       const payload: Record<string, unknown> = {
@@ -130,7 +126,6 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
         tag_ids:          selectedTagIds,
       };
 
-      // POST butuh artist_id, PUT di-strip oleh API
       if (mode === "create") {
         payload.artist_id = form.artist_id;
       }
@@ -165,12 +160,11 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
 
-      {/* ── Basic Info ── */}
+      {/* ── Basic Info — tidak berubah ── */}
       <Card className="bg-zinc-900 border-zinc-800">
         <CardContent className="p-5 space-y-4">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">Basic Info</p>
 
-          {/* Artist */}
           <div className="space-y-1.5">
             <Label className="text-xs text-zinc-400">
               Artist <span className="text-red-400">*</span>
@@ -178,21 +172,14 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
                 <span className="ml-2 text-zinc-600 font-normal">(cannot be changed)</span>
               )}
             </Label>
-            <Select
-              value={form.artist_id}
-              onValueChange={handleArtistChange}
-              disabled={mode === "edit"}
-            >
+            <Select value={form.artist_id} onValueChange={handleArtistChange} disabled={mode === "edit"}>
               <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100 focus:border-indigo-500 h-9 text-sm disabled:opacity-60">
                 <SelectValue placeholder="Select an artist..." />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-zinc-700 text-zinc-100">
                 {artists.map((a) => (
-                  <SelectItem
-                    key={a.id}
-                    value={a.id}
-                    className="hover:bg-zinc-800 focus:bg-zinc-800 text-zinc-200 text-sm"
-                  >
+                  <SelectItem key={a.id} value={a.id}
+                    className="hover:bg-zinc-800 focus:bg-zinc-800 text-zinc-200 text-sm">
                     {a.name}
                   </SelectItem>
                 ))}
@@ -200,12 +187,9 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
             </Select>
           </div>
 
-          {/* Title + Slug */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs text-zinc-400">
-                Title <span className="text-red-400">*</span>
-              </Label>
+              <Label className="text-xs text-zinc-400">Title <span className="text-red-400">*</span></Label>
               <Input
                 value={form.title}
                 onChange={(e) => handleTitleChange(e.target.value)}
@@ -215,9 +199,7 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-zinc-400">
-                Slug <span className="text-red-400">*</span>
-              </Label>
+              <Label className="text-xs text-zinc-400">Slug <span className="text-red-400">*</span></Label>
               <Input
                 value={form.slug}
                 onChange={(e) => set("slug", e.target.value)}
@@ -228,31 +210,21 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
             </div>
           </div>
 
-          {/* Album + Language */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs text-zinc-400">Album</Label>
-              <Select
-                value={form.album_id}
-                onValueChange={(v) => set("album_id", v)}
-              >
+              <Select value={form.album_id} onValueChange={(v) => set("album_id", v)}>
                 <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100 focus:border-indigo-500 h-9 text-sm">
                   <SelectValue placeholder="No album (single)" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-zinc-700 text-zinc-100">
-                  {/* ✅ value="__none__" bukan value="" */}
-                  <SelectItem
-                    value={NO_ALBUM}
-                    className="hover:bg-zinc-800 focus:bg-zinc-800 text-zinc-400 text-sm italic"
-                  >
+                  <SelectItem value={NO_ALBUM}
+                    className="hover:bg-zinc-800 focus:bg-zinc-800 text-zinc-400 text-sm italic">
                     No album (single)
                   </SelectItem>
                   {filteredAlbums.map((a) => (
-                    <SelectItem
-                      key={a.id}
-                      value={a.id}
-                      className="hover:bg-zinc-800 focus:bg-zinc-800 text-zinc-200 text-sm"
-                    >
+                    <SelectItem key={a.id} value={a.id}
+                      className="hover:bg-zinc-800 focus:bg-zinc-800 text-zinc-200 text-sm">
                       {a.title}
                     </SelectItem>
                   ))}
@@ -265,20 +237,14 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
 
             <div className="space-y-1.5">
               <Label className="text-xs text-zinc-400">Language</Label>
-              <Select
-                value={form.language}
-                onValueChange={(v) => set("language", v)}
-              >
+              <Select value={form.language} onValueChange={(v) => set("language", v)}>
                 <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-100 focus:border-indigo-500 h-9 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-zinc-700 text-zinc-100">
                   {LANGUAGES.map((l) => (
-                    <SelectItem
-                      key={l.value}
-                      value={l.value}
-                      className="hover:bg-zinc-800 focus:bg-zinc-800 text-zinc-200 text-sm"
-                    >
+                    <SelectItem key={l.value} value={l.value}
+                      className="hover:bg-zinc-800 focus:bg-zinc-800 text-zinc-200 text-sm">
                       {l.label}
                     </SelectItem>
                   ))}
@@ -287,7 +253,6 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
             </div>
           </div>
 
-          {/* Release date + Duration */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs text-zinc-400">Release Date</Label>
@@ -320,7 +285,7 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
         </CardContent>
       </Card>
 
-      {/* ── Media Links ── */}
+      {/* ── Media Links — tidak berubah ── */}
       <Card className="bg-zinc-900 border-zinc-800">
         <CardContent className="p-5 space-y-4">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">Media Links</p>
@@ -347,34 +312,21 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
         </CardContent>
       </Card>
 
-      {/* ── Cover Image ── */}
+      {/* ── Cover Image — DIGANTI dengan ImageUpload ── */}
       <Card className="bg-zinc-900 border-zinc-800">
-        <CardContent className="p-5 space-y-3">
+        <CardContent className="p-5 space-y-4">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">Cover Image</p>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-zinc-400">Image URL</Label>
-            <Input
-              value={form.cover_image}
-              onChange={(e) => set("cover_image", e.target.value)}
-              placeholder="https://..."
-              className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500 h-9 text-sm font-mono"
-            />
-          </div>
-          {form.cover_image && (
-            <div className="flex items-center gap-3">
-              <img
-                src={form.cover_image}
-                alt="preview"
-                className="w-16 h-16 rounded object-cover border border-zinc-700"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-              />
-              <p className="text-xs text-zinc-500">Preview</p>
-            </div>
-          )}
+          <ImageUpload
+            value={form.cover_image}
+            onChange={(url) => set("cover_image", url)}
+            bucket="songs"
+            label="Cover Image"
+            aspectRatio="square"
+          />
         </CardContent>
       </Card>
 
-      {/* ── Tags ── */}
+      {/* ── Tags — tidak berubah ── */}
       {tags.length > 0 && (
         <Card className="bg-zinc-900 border-zinc-800">
           <CardContent className="p-5 space-y-3">
@@ -424,7 +376,7 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
         </Card>
       )}
 
-      {/* ── Publish toggle ── */}
+      {/* ── Publish toggle — tidak berubah ── */}
       <Card className="bg-zinc-900 border-zinc-800">
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
@@ -445,23 +397,14 @@ export default function SongForm({ mode, song, artists, albums, tags }: SongForm
 
       <Separator className="bg-zinc-800" />
 
-      {/* ── Actions ── */}
+      {/* ── Actions — tidak berubah ── */}
       <div className="flex items-center gap-3 justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => router.back()}
-          className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 h-9"
-        >
+        <Button type="button" variant="outline" size="sm" onClick={() => router.back()}
+          className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 h-9">
           Cancel
         </Button>
-        <Button
-          type="submit"
-          size="sm"
-          disabled={isPending}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white h-9 px-6 min-w-[110px]"
-        >
+        <Button type="submit" size="sm" disabled={isPending}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white h-9 px-6 min-w-[110px]">
           {isPending
             ? (mode === "create" ? "Creating..." : "Saving...")
             : (mode === "create" ? "Create Song" : "Save Changes")}
