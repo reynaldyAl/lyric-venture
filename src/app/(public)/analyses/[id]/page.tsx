@@ -52,14 +52,14 @@ async function getAnalysis(id: string): Promise<AnalysisFull | null> {
   };
 }
 
-// ── Dynamic SEO ───────────────────────────────────────────
+// ── SEO ───────────────────────────────────────────────────
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id }     = await params;
-  const analysis   = await getAnalysis(id);
+  const { id }   = await params;
+  const analysis = await getAnalysis(id);
   if (!analysis) return { title: "Analysis Not Found" };
 
   const song   = analysis.songs as any;
@@ -93,8 +93,8 @@ export default async function AnalysisDetailPage({
   if (!analysis) notFound();
 
   const song   = analysis.songs as any;
-  const artist = song?.artists as any;
-  const album  = song?.albums  as any;
+  const artist = song?.artists  as any;
+  const album  = song?.albums   as any;
   const year   = song?.release_date
     ? new Date(song.release_date).getFullYear()
     : null;
@@ -107,35 +107,33 @@ export default async function AnalysisDetailPage({
         <div className="container mx-auto px-6 py-10 max-w-3xl">
 
           {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-xs text-[#A8A39D] mb-6">
+          <nav className="flex items-center gap-2 text-xs text-[#A8A39D] mb-6">
             <Link href="/" className="hover:text-[#1A1917] transition-colors">Home</Link>
             <span>/</span>
             <Link href="/analyses" className="hover:text-[#1A1917] transition-colors">Analyses</Link>
             <span>/</span>
             <span className="text-[#5A5651] truncate max-w-[200px]">{song?.title}</span>
-          </div>
+          </nav>
 
           <div className="flex gap-5 items-start">
-            {/* Cover image */}
+            {/* Cover */}
             {song?.cover_image && (
-              <div className="relative w-20 h-20 shrink-0 shadow-md">
+              <div className="relative w-20 h-20 shrink-0 shadow-md overflow-hidden">
                 <Image
                   src={song.cover_image}
                   alt={song.title}
                   fill
                   className="object-cover"
                   sizes="80px"
+                  priority
                 />
               </div>
             )}
 
             <div className="flex-1 min-w-0">
-              {/* Label */}
               <p className="text-[10px] tracking-[0.4em] uppercase text-[#8A8680] mb-1.5">
                 Lyric Analysis
               </p>
-
-              {/* Song title */}
               <h1 className="font-serif font-bold text-2xl md:text-3xl text-[#1A1917] leading-tight">
                 {song?.title ?? "Untitled"}
               </h1>
@@ -163,7 +161,7 @@ export default async function AnalysisDetailPage({
                 )}
               </div>
 
-              {/* Theme badge */}
+              {/* Theme */}
               {analysis.theme && (
                 <p className="mt-3 text-xs text-[#5A5651] italic border-l-2 border-[#C5C2BC] pl-2.5">
                   Theme: {analysis.theme}
@@ -201,7 +199,7 @@ export default async function AnalysisDetailPage({
           </section>
         )}
 
-        {/* Lyric Sections */}
+        {/* Lyric sections */}
         {analysis.lyric_sections.length > 0 && (
           <section>
             <p className="text-[10px] tracking-[0.35em] uppercase text-[#A8A39D] font-semibold mb-5">
@@ -225,12 +223,18 @@ export default async function AnalysisDetailPage({
 
         {/* Back to song */}
         {song?.slug && (
-          <div className="border-t border-[#E2E0DB] pt-8">
+          <div className="border-t border-[#E2E0DB] pt-6 flex items-center justify-between">
             <Link
               href={`/songs/${song.slug}`}
               className="inline-flex items-center gap-2 text-sm text-[#3B5BDB] hover:underline"
             >
               ← Back to song page
+            </Link>
+            <Link
+              href="/analyses"
+              className="text-xs text-[#8A8680] hover:text-[#1A1917] transition-colors"
+            >
+              All analyses →
             </Link>
           </div>
         )}
