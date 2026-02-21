@@ -4,6 +4,41 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import AlbumCard from "@/components/public/AlbumCard";
 import type { Tables } from "@/lib/types";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug }  = await params;
+  const artist    = await getArtist(slug);
+
+  if (!artist) return { title: "Artist Not Found" };
+
+  const description =
+    artist.bio?.slice(0, 160) ??
+    `Explore songs and lyric analyses by ${artist.name} on LyricVenture.`;
+
+  return {
+    title:       artist.name,
+    description,
+    openGraph: {
+      title:       `${artist.name} | LyricVenture`,
+      description,
+      url:         `https://lyricventure.com/artists/${slug}`,
+      images:      artist.cover_image
+        ? [{ url: artist.cover_image, alt: artist.name }]
+        : [],
+    },
+    twitter: {
+      card:        "summary_large_image",
+      title:       `${artist.name} | LyricVenture`,
+      description,
+      images:      artist.cover_image ? [artist.cover_image] : [],
+    },
+  };
+}
 
 // ── Types — sesuai GET /api/artists/[slug] response ───────
 type SongInArtist = Pick<

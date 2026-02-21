@@ -1,6 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import ArtistsClient from "@/components/public/ArtistsClient";
 import type { Tables } from "@/lib/types";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Artists",
+  description: "Explore artists and their discographies on LyricVenture. Dive deep into the music that shaped culture.",
+  openGraph: {
+    title: "Artists | LyricVenture",
+    description: "Explore artists and their discographies.",
+    url: "https://lyricventure.com/artists",
+  },
+};
 
 type ArtistItem = Pick<
   Tables<"artists">,

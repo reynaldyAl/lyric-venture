@@ -4,6 +4,49 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import LyricAnalysis from "@/components/public/LyricAnalysis";
 import type { Tables } from "@/lib/types";
+import type { Metadata } from "next";
+
+// ── Dynamic metadata per song ─────────────────────────────
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const song = await getSong(slug);
+
+  if (!song) {
+    return { title: "Song Not Found" };
+  }
+
+  const artist  = song.artists as any;
+  const title   = artist?.name
+    ? `${song.title} — ${artist.name}`
+    : song.title;
+  const description =
+    (song as any).lyric_analyses?.[0]?.intro?.slice(0, 160) ??
+    `Lyric analysis and meaning of "${song.title}"${artist?.name ? ` by ${artist.name}` : ""}.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title:       `${title} | LyricVenture`,
+      description,
+      url:         `https://lyricventure.com/songs/${slug}`,
+      images:      song.cover_image
+        ? [{ url: song.cover_image, width: 400, height: 400, alt: song.title }]
+        : [],
+      type: "music.song",
+    },
+    twitter: {
+      card:        "summary_large_image",
+      title:       `${title} | LyricVenture`,
+      description,
+      images:      song.cover_image ? [song.cover_image] : [],
+    },
+  };
+}
 
 // ── Types ──────────────────────────────────────────────────
 type Highlight  = Tables<"lyric_highlights">;

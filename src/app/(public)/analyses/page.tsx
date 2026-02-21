@@ -2,6 +2,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/types";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Lyric Analyses",
+  description: "Deep dive into song meanings. Read expert lyric analyses covering metaphor, symbolism, and cultural context.",
+  openGraph: {
+    title: "Lyric Analyses | LyricVenture",
+    description: "Deep dive into song meanings with expert lyric analyses.",
+    url: "https://lyricventure.com/analyses",
+  },
+};
 
 type AnalysisItem = Pick<Tables<"lyric_analyses">, "id" | "theme" | "intro" | "published_at"> & {
   songs: (Pick<Tables<"songs">, "id" | "title" | "slug" | "cover_image" | "language"> & {

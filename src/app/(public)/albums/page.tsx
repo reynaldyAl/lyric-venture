@@ -2,6 +2,17 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import AlbumCard from "@/components/public/AlbumCard";
 import type { Tables } from "@/lib/types";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Albums",
+  description: "Browse album discographies on LyricVenture. Explore track lists and lyric analyses by album.",
+  openGraph: {
+    title: "Albums | LyricVenture",
+    description: "Browse album discographies and lyric analyses.",
+    url: "https://lyricventure.com/albums",
+  },
+};
 
 type AlbumItem = Pick<
   Tables<"albums">,

@@ -19,10 +19,27 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "LyricVenture",
+    default:  "LyricVenture",
     template: "%s | LyricVenture",
   },
-  description: "Explore the meaning behind your favorite songs",
+  description: "Explore the meaning behind your favorite songs. Expert lyric analyses covering metaphor, symbolism, and cultural context.",
+
+  // ── Tambahkan 4 baris ini ──────────────────────────────
+  metadataBase: new URL("https://lyricventure.com"),
+  openGraph: {
+    siteName: "LyricVenture",
+    type:     "website",
+    locale:   "en_US",
+  },
+  twitter: {
+    card:    "summary_large_image",
+    creator: "@lyricventure",
+  },
+  robots: {
+    index:  true,
+    follow: true,
+  },
+  // ───────────────────────────────────────────────────────
 };
 
 export default function RootLayout({

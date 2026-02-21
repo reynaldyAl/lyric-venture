@@ -3,6 +3,46 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/types";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const album    = await getAlbum(slug);
+
+  if (!album) return { title: "Album Not Found" };
+
+  const artist      = album.artists;
+  const year        = album.release_date ? new Date(album.release_date).getFullYear() : null;
+  const title       = artist?.name
+    ? `${album.title} — ${artist.name}`
+    : album.title;
+  const description =
+    album.description?.slice(0, 160) ??
+    `${album.title}${year ? ` (${year})` : ""}${artist?.name ? ` by ${artist.name}` : ""}. Browse tracks and lyric analyses on LyricVenture.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title:       `${title} | LyricVenture`,
+      description,
+      url:         `https://lyricventure.com/albums/${slug}`,
+      images:      album.cover_image
+        ? [{ url: album.cover_image, alt: album.title }]
+        : [],
+    },
+    twitter: {
+      card:        "summary_large_image",
+      title:       `${title} | LyricVenture`,
+      description,
+      images:      album.cover_image ? [album.cover_image] : [],
+    },
+  };
+}
 
 // ── Types — sesuai GET /api/albums/[slug] response ────────
 type SongInAlbum = Pick<

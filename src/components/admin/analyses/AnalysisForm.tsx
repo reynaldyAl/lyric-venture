@@ -87,8 +87,7 @@ export default function AnalysisForm({ mode, analysis, songs }: AnalysisFormProp
         });
         if (mode === "create") {
           // Redirect ke edit page agar bisa tambah sections
-          router.push(`/dashboard/analyses/${json.id}`);
-          router.refresh();
+          router.push(`/dashboard/analyses/${json.id}/edit`);
         } else {
           router.refresh();
         }

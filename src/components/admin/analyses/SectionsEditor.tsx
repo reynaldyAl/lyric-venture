@@ -205,12 +205,23 @@ export default function SectionsEditor({ analysisId, initialSections }: Sections
       return;
     }
 
+      // ── Auto-compute start/end index dari content section ──
+    let start = Number(highlightForm.start_index) || 0;
+    let end   = Number(highlightForm.end_index)   || 0;
+    if (!highlightForm.start_index && !highlightForm.end_index && highlightTarget) {
+        const idx = highlightTarget.content.indexOf(highlightForm.phrase.trim());
+        if (idx !== -1) {
+            start = idx;
+            end   = idx + highlightForm.phrase.trim().length;
+        }
+     }
+
     startTransition(async () => {
       const payload = {
         phrase:         highlightForm.phrase.trim(),
         meaning:        highlightForm.meaning.trim(),
-        start_index:    Number(highlightForm.start_index) || 0,
-        end_index:      Number(highlightForm.end_index)   || 0,
+        start_index:    start,
+        end_index:      end,
         color_tag:      highlightForm.color_tag,
         highlight_type: highlightForm.highlight_type,
         order_index:    highlightForm.order_index,
