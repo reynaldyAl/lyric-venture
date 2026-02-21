@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { okResponse, errorResponse, notFound, requireAuth, requireAdmin } from '@/lib/api-helpers'
 
+// GET /api/tags/[id]
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -18,6 +19,7 @@ export async function GET(
   return okResponse(data)
 }
 
+// PUT /api/tags/[id]
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -28,23 +30,24 @@ export async function PUT(
   if (authError) return authError
 
   const body = await request.json()
-  const { name, slug, color } = body
+  delete body.id
+  delete body.created_at
 
-  // ✅ Fix v2.97 — cast supabase ke any dulu, bukan parameter-nya
   const db = supabase as any
 
   const { data, error } = await db
     .from('tags')
-    .update({ name, slug, color })
+    .update(body)
     .eq('id', id)
     .select()
     .single()
 
   if (error) return errorResponse(error.message)
-  if (!data) return notFound('Tag')
+  if (!data)  return notFound('Tag')
   return okResponse(data)
 }
 
+// DELETE /api/tags/[id] — admin only
 export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }

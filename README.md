@@ -100,6 +100,7 @@ npm install --legacy-peer-deps
 npm install @supabase/supabase-js @supabase/ssr
 npm install clsx tailwind-merge react-hook-form @hookform/resolvers zod date-fns
 npx shadcn@latest init
+npm install tailwindcss-animate
 ```
 *** for shadcn ***
 ```bash
@@ -139,6 +140,32 @@ supabase/migrations/
 ├── 11_functions.sql           → Custom functions
 ├── 12_triggers.sql            → Database triggers
 └── 13_seed_data.sql           → Sample data (The Beatles)
+```
+**API Summary**
+```
+API Route                          Bisa Dipakai Di
+─────────────────────────────────────────────────────
+GET  /api/artists                → Public: halaman /artists (list)
+GET  /api/artists/[slug]         → Public: halaman /artists/[slug] (detail)
+GET  /api/albums                 → Public: halaman /albums (list)
+GET  /api/albums/[slug]          → Public: halaman /albums/[slug] (detail)
+GET  /api/songs                  → Public: halaman /songs (list + search)
+GET  /api/songs/[slug]           → Public: halaman /songs/[slug] (detail + lirik + analisis)
+GET  /api/lyric-analyses         → Public: halaman /analyses (list)
+GET  /api/tags                   → Public: filter di /songs
+GET  /api/auth                   → Admin: profile page
+POST /api/artists                → Admin: form create artist
+PUT  /api/artists/[slug]         → Admin: form edit artist
+DELETE /api/artists/[slug]       → Admin: delete artist
+POST /api/albums                 → Admin: form create album
+PUT  /api/albums/[slug]          → Admin: form edit album
+DELETE /api/albums/[slug]        → Admin: delete album
+POST /api/songs                  → Admin: form create song
+PUT  /api/songs/[slug]           → Admin: form edit song
+DELETE /api/songs/[slug]         → Admin: delete song
+POST /api/lyric-analyses         → Admin: form create analisis
+GET  /api/lyric-analyses/[id]    → Admin: form edit analisis
+POST /api/upload                 → Admin: upload gambar
 ```
 
 ---
@@ -183,6 +210,20 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```
 
 ---
+
+```bash 
+Root Cause:
+Supabase JS v2 + TypeScript tidak bisa infer return type
+dari .select() partial columns tanpa eksplisit type cast.
+
+Hasilnya: data → PostgrestMaybeSingleResponse<never>
+                                               ^^^^^^ ini masalahnya
+
+Solusi Permanen:
+1. Definisikan type eksplisit dari Tables<"nama_tabel">
+2. Cast hasil dengan `as ArtistRow[]`
+3. Selalu gunakan Pick<Tables<"x">, "col1"|"col2"> untuk partial select
+```
 
 ## 📁 Project Structure
 
